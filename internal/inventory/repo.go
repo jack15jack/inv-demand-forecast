@@ -6,6 +6,12 @@ type Repository interface {
 	Create(item *Item) error
 	GetAll() ([]Item, error)
 	GetByID(id uint) (*Item, error)
+
+	// Inventory Transactions
+	CreateTransaction(transaction *InventoryTransaction) error
+	GetTransactionsForItem(itemID uint) ([]InventoryTransaction, error)
+	GetAllTransactions() ([]InventoryTransaction, error)
+	GetByItemNumber(itemNumber string) (*Item, error)
 }
 
 type repository struct {
@@ -22,12 +28,59 @@ func (r *repository) Create(item *Item) error {
 
 func (r *repository) GetAll() ([]Item, error) {
 	var items []Item
-	err := r.db.Find(&items).Error
+
+	err := r.db.Order("item_number").Find(&items).Error
+
 	return items, err
 }
 
 func (r *repository) GetByID(id uint) (*Item, error) {
 	var item Item
+
 	err := r.db.First(&item, id).Error
-	return &item, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+func (r *repository) CreateTransaction(transaction *InventoryTransaction) error {
+	return r.db.Create(transaction).Error
+}
+
+func (r *repository) GetTransactionsForItem(itemID uint) ([]InventoryTransaction, error) {
+	var transactions []InventoryTransaction
+
+	err := r.db.
+		Where("item_id = ?", itemID).
+		Order("created_at ASC").
+		Find(&transactions).Error
+
+	return transactions, err
+}
+
+func (r *repository) GetAllTransactions() ([]InventoryTransaction, error) {
+	var transactions []InventoryTransaction
+
+	err := r.db.
+		Order("created_at DESC").
+		Find(&transactions).Error
+
+	return transactions, err
+}
+
+func (r *repository) GetByItemNumber(itemNumber string) (*Item, error) {
+	var item Item
+
+	err := r.db.
+		Where("item_number = ?", itemNumber).
+		First(&item).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
 }

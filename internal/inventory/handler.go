@@ -16,14 +16,15 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) CreateItem(c *gin.Context) {
-	var item Item
+	var req CreateItemRequest
 
-	if err := c.ShouldBindJSON(&item); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.service.CreateItem(&item); err != nil {
+	item, err := h.service.CreateItem(req)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -51,4 +52,67 @@ func (h *Handler) GetItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, item)
+}
+
+func (h *Handler) CreateTransaction(c *gin.Context) {
+	var req CreateTransactionRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	transaction, err := h.service.CreateTransaction(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, transaction)
+}
+
+func (h *Handler) GetTransactions(c *gin.Context) {
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid item id",
+		})
+		return
+	}
+
+	transactions, err := h.service.GetTransactions(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, transactions)
+}
+
+func (h *Handler) GetStock(c *gin.Context) {
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid item id",
+		})
+		return
+	}
+
+	stock, err := h.service.GetStock(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, stock)
 }

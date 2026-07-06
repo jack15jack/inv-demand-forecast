@@ -3,17 +3,24 @@ package inventory
 import "time"
 
 type Item struct {
-	ID          uint   `gorm:"primaryKey" json:"id"`
-	ItemNumber  string `gorm:"unique;not null" json:"itemNumber"`
-	Description string `json:"description"`
-	Category    string `json:"category"`
+	ID uint `gorm:"column:id;primaryKey" json:"id"`
 
-	UnitCost  float64 `json:"unitCost"`
-	UnitPrice float64 `json:"unitPrice"`
+	ItemNumber  string `gorm:"column:item_number" json:"itemNumber"`
+	Description string `gorm:"column:description" json:"description"`
+	Category    string `gorm:"column:category" json:"category"`
 
-	MinimumStock int `json:"minimumStock"`
-	SafetyStock  int `json:"safetyStock"`
+	UnitCost  float64 `gorm:"column:unit_cost" json:"unitCost"`
+	UnitPrice float64 `gorm:"column:unit_price" json:"unitPrice"`
 
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	MinimumStock int `gorm:"column:minimum_stock" json:"minimumStock"`
+	SafetyStock  int `gorm:"column:safety_stock" json:"safetyStock"`
+
+	IsActive bool `gorm:"column:is_active" json:"isActive"`
+
+	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"column:updated_at" json:"updatedAt"`
+}
+
+func (Item) TableName() string {
+	return "items"
 }
