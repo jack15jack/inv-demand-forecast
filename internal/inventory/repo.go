@@ -12,6 +12,9 @@ type Repository interface {
 	GetTransactionsForItem(itemID uint) ([]InventoryTransaction, error)
 	GetAllTransactions() ([]InventoryTransaction, error)
 	GetByItemNumber(itemNumber string) (*Item, error)
+
+	CreateSnapshot(snapshot *InventorySnapshot) error
+	GetSnapshotsForItem(itemID uint) ([]InventorySnapshot, error)
 }
 
 type repository struct {
@@ -83,4 +86,20 @@ func (r *repository) GetByItemNumber(itemNumber string) (*Item, error) {
 	}
 
 	return &item, nil
+}
+
+func (r *repository) CreateSnapshot(snapshot *InventorySnapshot) error {
+	return r.db.Create(snapshot).Error
+}
+
+func (r *repository) GetSnapshotsForItem(itemID uint) ([]InventorySnapshot, error) {
+
+	var snapshots []InventorySnapshot
+
+	err := r.db.
+		Where("item_id = ?", itemID).
+		Order("snapshot_date ASC").
+		Find(&snapshots).Error
+
+	return snapshots, err
 }

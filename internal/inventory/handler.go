@@ -116,3 +116,49 @@ func (h *Handler) GetStock(c *gin.Context) {
 
 	c.JSON(http.StatusOK, stock)
 }
+
+func (h *Handler) CreateSnapshot(c *gin.Context) {
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid item id",
+		})
+		return
+	}
+
+	snapshot, err := h.service.CreateSnapshot(uint(id))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, snapshot)
+}
+
+func (h *Handler) GetSnapshots(c *gin.Context) {
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid item id",
+		})
+		return
+	}
+
+	snapshots, err := h.service.GetSnapshots(uint(id))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, snapshots)
+}

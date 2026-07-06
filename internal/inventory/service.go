@@ -1,6 +1,9 @@
 package inventory
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type Service interface {
 	CreateItem(req CreateItemRequest) (*Item, error)
@@ -11,7 +14,13 @@ type Service interface {
 	CreateTransaction(req CreateTransactionRequest) (*InventoryTransaction, error)
 	GetTransactions(itemID uint) ([]InventoryTransaction, error)
 
+	//Stock
 	GetStock(itemID uint) (*StockResponse, error)
+	CalculateCurrentStock(itemID uint) (int, error)
+
+	// Snapshots
+	CreateSnapshot(itemID uint) (*InventorySnapshot, error)
+	GetSnapshots(itemID uint) ([]InventorySnapshot, error)
 }
 
 type service struct {
@@ -115,4 +124,81 @@ func (s *service) GetStock(itemID uint) (*StockResponse, error) {
 	}
 
 	return stock, nil
+}
+
+func (s *service) CalculateCurrentStock(itemID uint) (int, error) {
+
+	transactions, err := s.repo.GetTransactionsForItem(itemID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	stock := 0
+
+	for _, t := range transactions {
+
+		if t.Direction == Inbound {
+			stock += t.Quantity
+		}
+
+		if t.Direction == Outbound {
+			stock -= t.Quantity
+		}
+	}
+
+	return stock, nil
+}
+
+func (s *service) CreateSnapshot(itemID uint) (*InventorySnapshot, error) {
+
+	// Verify item exists
+	_, err := s.repo.GetByID(itemID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate current inventory
+	stock, err := s.CalculateCurrentStock(itemID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+
+	snapshotDate := time.Date(
+		now.Year(),
+		now.Month(),
+		now.Day(),
+		0,
+		0,
+		0,
+		0,
+		now.Location(),
+	)
+
+	snapshot := &InventorySnapshot{
+		ItemID:       itemID,
+		Quantity:     stock,
+		SnapshotDate: snapshotDate,
+	}
+
+	err = s.repo.CreateSnapshot(snapshot)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return snapshot, nil
+}
+
+func (s *service) GetSnapshots(itemID uint) ([]InventorySnapshot, error) {
+
+	_, err := s.repo.GetByID(itemID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.GetSnapshotsForItem(itemID)
 }
