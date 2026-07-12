@@ -1,5 +1,7 @@
 package inventory
 
+import "time"
+
 type CreateItemRequest struct {
 	ItemNumber  string `json:"itemNumber" binding:"required"`
 	Description string `json:"description" binding:"required"`
@@ -24,6 +26,8 @@ type CreateTransactionRequest struct {
 	Reference string `json:"reference"`
 
 	Notes string `json:"notes"`
+
+	Timestamp *time.Time `json:"timestamp,omitempty"`
 }
 
 type StockResponse struct {
@@ -36,4 +40,21 @@ type StockResponse struct {
 	Returns     int `json:"returns"`
 	Adjustments int `json:"adjustments"`
 	Damaged     int `json:"damaged"`
+}
+
+type AnalyticsResponse struct {
+	ItemID uint `json:"itemId"`
+
+	AnalysisWindowDays int `json:"analysisWindowDays"`
+
+	CurrentStock int `json:"currentStock"`
+
+	AverageDailyDemand  float64 `json:"averageDailyDemand"`
+	AverageWeeklyDemand float64 `json:"averageWeeklyDemand"`
+
+	DaysOfInventoryRemaining float64 `json:"daysOfInventoryRemaining"`
+
+	UnitsSold int `json:"unitsSold"`
+
+	LastSale *time.Time `json:"lastSale,omitempty"`
 }

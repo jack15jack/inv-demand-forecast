@@ -162,3 +162,42 @@ func (h *Handler) GetSnapshots(c *gin.Context) {
 
 	c.JSON(http.StatusOK, snapshots)
 }
+
+func (h *Handler) GetAnalytics(c *gin.Context) {
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid item id",
+		})
+		return
+	}
+
+	days := 30
+
+	if daysStr := c.Query("days"); daysStr != "" {
+
+		d, err := strconv.Atoi(daysStr)
+
+		if err != nil || d <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "days must be a positive integer",
+			})
+			return
+		}
+
+		days = d
+	}
+
+	analytics, err := h.service.GetAnalytics(uint(id), days)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, analytics)
+}
