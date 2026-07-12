@@ -201,3 +201,61 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 
 	c.JSON(http.StatusOK, analytics)
 }
+
+func (h *Handler) GetForecast(c *gin.Context) {
+
+	id, err := strconv.ParseUint(
+		c.Param("id"),
+		10,
+		64,
+	)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": "invalid item id",
+		})
+		return
+	}
+
+	historyDays := 30
+	forecastDays := 7
+
+	if value := c.Query("historyDays"); value != "" {
+
+		historyDays, err = strconv.Atoi(value)
+
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": "invalid historyDays",
+			})
+			return
+		}
+	}
+
+	if value := c.Query("forecastDays"); value != "" {
+
+		forecastDays, err = strconv.Atoi(value)
+
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": "invalid forecastDays",
+			})
+			return
+		}
+	}
+
+	forecast, err := h.service.GetForecast(
+		uint(id),
+		historyDays,
+		forecastDays,
+	)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, forecast)
+}

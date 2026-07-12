@@ -93,13 +93,6 @@ Future Work:
 - Role-based authentication and audit logs
 
 
-Phase 4 – Metrics
-- Current inventory
-- Inventory value
-- Daily usage
-- Last movement
-- Inventory reports
-
 Phase 5 – Forecasting
 - Moving average
 - Exponential smoothing

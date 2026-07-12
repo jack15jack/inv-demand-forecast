@@ -24,6 +24,7 @@ type Service interface {
 
 	// Analytics
 	GetAnalytics(itemID uint, days int) (*AnalyticsResponse, error)
+	GetForecast(itemID uint, historyDays int, forecastDays int) (*ForecastResponse, error)
 }
 
 type service struct {
@@ -283,4 +284,71 @@ func (s *service) GetAnalytics(itemID uint, days int) (*AnalyticsResponse, error
 	}
 
 	return analytics, nil
+}
+
+func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*ForecastResponse, error) {
+
+	// Verify item exists
+	_, err := s.repo.GetByID(itemID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if historyDays <= 0 {
+		historyDays = 30
+	}
+
+	if forecastDays <= 0 {
+		forecastDays = 7
+	}
+
+	transactions, err := s.repo.GetTransactionsForItem(itemID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	cutoff := time.Now().AddDate(0, 0, -historyDays)
+
+	unitsSold := 0
+
+	for _, t := range transactions {
+
+		if t.TransactionType != Sale {
+			continue
+		}
+
+		if t.Direction != Outbound {
+			continue
+		}
+
+		if t.CreatedAt.Before(cutoff) {
+			continue
+		}
+
+		unitsSold += t.Quantity
+	}
+
+	averageDailyDemand := float64(unitsSold) / float64(historyDays)
+
+	response := &ForecastResponse{
+		ItemID:             itemID,
+		ForecastDays:       forecastDays,
+		HistoricalDays:     historyDays,
+		AverageDailyDemand: averageDailyDemand,
+	}
+
+	for i := 0; i < forecastDays; i++ {
+
+		response.DailyForecast =
+			append(
+				response.DailyForecast,
+				averageDailyDemand,
+			)
+
+		response.ForecastedDemand += int(averageDailyDemand)
+	}
+
+	return response, nil
 }

@@ -58,3 +58,17 @@ type AnalyticsResponse struct {
 
 	LastSale *time.Time `json:"lastSale,omitempty"`
 }
+
+type ForecastResponse struct {
+	ItemID uint `json:"itemId"`
+
+	ForecastDays int `json:"forecastDays"`
+
+	HistoricalDays int `json:"historicalDays"`
+
+	AverageDailyDemand float64 `json:"averageDailyDemand"`
+
+	ForecastedDemand int `json:"forecastedDemand"`
+
+	DailyForecast []float64 `json:"dailyForecast"`
+}

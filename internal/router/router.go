@@ -32,6 +32,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		items.GET("/:id/snapshots", handler.GetSnapshots)
 
 		items.GET("/:id/analytics", handler.GetAnalytics)
+		items.GET("/:id/forecast", handler.GetForecast)
 	}
 
 	transactions := r.Group("/transactions")
