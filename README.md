@@ -1,41 +1,50 @@
 # Inventory & Demand Forecasting System
 
-A backend inventory management and demand forecasting platform designed to help businesses track inventory levels, analyze product demand patterns, and make data-driven purchasing decisions.
+A full-stack inventory intelligence platform designed to help businesses track inventory, analyze demand patterns, forecast future requirements, and make data-driven purchasing decisions.
 
-The system combines inventory tracking, transaction history, demand analytics, and forecasting algorithms to provide insights into:
+The system combines:
 
-- Current inventory levels
-- Historical demand trends
-- Future product demand
-- Inventory depletion estimates
-- Future purchasing recommendations
+- Inventory management
+- Transaction-based stock tracking
+- Demand analytics
+- Statistical forecasting
+- Inventory depletion prediction
+- Automated purchasing recommendations
+
+The goal is to transform raw inventory data into actionable decisions:
+
+> "What do we have?"
+>
+> "What will we need?"
+>
+> "What should we buy?"
 
 ---
 
 # Overview
 
-Managing inventory effectively requires balancing two competing problems:
+Inventory management requires balancing two competing problems:
 
-- Overstocking products ties up capital and increases storage costs
-- Understocking products causes missed sales and production delays
+- Overstocking ties up capital and increases storage costs
+- Understocking causes missed sales and production delays
 
-This system aims to help purchasing teams answer questions such as:
+This system helps purchasing teams answer:
 
-- How much inventory do we currently have?
-- How quickly are products selling?
-- Which products are seasonal?
-- When should we reorder?
-- How much product should we purchase?
+- How much inventory is currently available?
+- How quickly are products being consumed?
+- Are products seasonal?
+- When will inventory run out?
+- How much should be purchased?
 
-The platform is designed with a modular architecture so forecasting algorithms can evolve over time without changing the underlying inventory system.
+The platform uses a modular backend architecture so forecasting algorithms can evolve independently from the inventory system.
 
 ---
 
-# Inventory Management
+# Current Features
 
-The system maintains detailed information about each inventory item.
+## Inventory Management
 
-Supported item data includes:
+Each inventory item contains:
 
 - Item number
 - Description
@@ -62,11 +71,11 @@ Example:
 
 ---
 
-# Inventory Transactions
+# Transaction-Based Inventory
 
-Inventory changes are tracked through transactions rather than directly modifying stock quantities.
+Inventory quantities are not directly modified.
 
-This provides a complete audit history of inventory movement.
+Instead, all inventory movement is recorded as transactions.
 
 Supported transaction types:
 
@@ -76,13 +85,13 @@ Supported transaction types:
 - Adjustment
 - Transfer
 
-Each transaction records:
+Each transaction stores:
 
 - Item
 - Quantity
 - Direction
 - Transaction type
-- Reference information
+- Reference
 - Notes
 - Timestamp
 
@@ -98,24 +107,26 @@ Example:
 }
 ```
 
-Current inventory is calculated from transaction history:
+Current inventory:
 
 ```
-Current Inventory =
+Inventory =
 Inbound Transactions -
 Outbound Transactions
 ```
 
+This provides a complete audit history of inventory movement.
+
 ---
 
-# Inventory Analytics
+# Analytics
 
-The analytics engine provides historical demand insights for individual items.
+The analytics engine provides historical demand insights.
 
-Current metrics include:
+Current metrics:
 
-- Current inventory quantity
-- Units sold within a selected timeframe
+- Current stock
+- Units sold
 - Average daily demand
 - Average weekly demand
 - Days of inventory remaining
@@ -131,10 +142,10 @@ Response:
 
 ```json
 {
-  "currentStock": 425,
-  "averageDailyDemand": 4.2,
-  "averageWeeklyDemand": 29.4,
-  "daysOfInventoryRemaining": 101
+  "currentStock":425,
+  "averageDailyDemand":4.2,
+  "averageWeeklyDemand":29.4,
+  "daysOfInventoryRemaining":101
 }
 ```
 
@@ -142,79 +153,53 @@ Response:
 
 # Demand Forecasting
 
-The forecasting engine predicts future inventory demand using historical transaction data.
+The forecasting engine converts transaction history into future demand predictions.
 
-Current forecasting pipeline:
+Pipeline:
 
 ```
-Transaction History
-        |
-        v
-Daily Demand Generation
-        |
-        v
-Average Demand Calculation
-        |
-        v
-Trend Detection
-        |
-        v
-Weekly Seasonality
-        |
-        v
+Transactions
+      |
+      v
+Daily Demand History
+      |
+      v
+Holt Linear Smoothing
+      |
+      v
+Seasonality Adjustment
+      |
+      v
 Forecast Generation
 ```
 
 ---
 
-# Forecasting Features
+# Forecasting Methods
 
-## Historical Demand Generation
+## Holt Linear Exponential Smoothing
 
-Transactions are converted into daily demand data.
+The forecasting engine uses Holt's Linear Trend Method, an exponential smoothing technique that models both the current demand level and the underlying demand trend.
 
-Example:
+Unlike simple exponential smoothing, Holt's method can detect increasing or decreasing demand patterns.
 
-```
-30 Day History:
+The model maintains:
 
-[
- 5,
- 0,
- 3,
- 8,
- 0,
- 10,
- 4
-]
-```
+- Level component
+- Trend component
 
-Missing sales days are included as zero-demand days to prevent inflated forecasts.
+Benefits:
 
----
-
-## Demand Trend Detection
-
-The forecasting system analyzes whether demand is increasing or decreasing.
-
-Example:
-
-```
-Previous Period Average:
-10 units/day
-
-Recent Period Average:
-14 units/day
-
-Trend:
-+40%
-```
+- Recent demand has higher influence
+- Adapts to changing demand patterns
+- Handles gradual growth or decline
+- Provides a stronger baseline than moving averages
 
 ---
 
 ## Weekly Seasonality
 
-The system analyzes demand differences between days of the week.
+The system analyzes demand differences between weekdays.
 
 Example:
 
@@ -229,20 +214,20 @@ Sunday:
 0.4x average demand
 ```
 
-This allows forecasts to adjust for weekly purchasing patterns.
+Seasonality is only applied when enough historical data exists to avoid overfitting.
 
 ---
 
-## Monthly / Annual Seasonality
+## Monthly Seasonality
 
-Planned support for products with yearly demand cycles.
+Support for yearly demand cycles:
 
 Examples:
 
 - Holiday products
-- Seasonal clothing
+- Seasonal equipment
 - School supplies
-- Outdoor equipment
+- Clothing
 
 Example:
 
@@ -257,35 +242,136 @@ December:
 4.0x demand
 ```
 
-Monthly seasonality requires sufficient historical data, typically one or more years.
-
 ---
 
-# Forecast Output
+# Forecast Confidence
+
+Forecasts include a confidence estimate based on:
+
+- Amount of historical data
+- Demand consistency
+- Available seasonality information
 
 Example:
 
-```
-GET /items/1/forecast?historyDays=365&forecastDays=30
+```json
+{
+  "confidence":{
+    "score":82,
+    "level":"HIGH"
+  }
+}
 ```
 
-Response:
+This allows users to understand when predictions should be trusted.
+
+---
+
+# Purchasing Recommendations
+
+Forecasts are converted into actionable purchasing decisions.
+
+Instead of only predicting demand:
+
+```
+Expected Demand:
+300 units
+```
+
+the system provides:
+
+```
+Recommended Purchase:
+250 units
+```
+
+Calculation:
+
+```
+Required Inventory =
+Forecasted Demand
++
+Safety Stock
+
+Recommended Purchase =
+Required Inventory
+-
+Current Stock
+```
+
+Example:
 
 ```json
 {
-  "itemID": 1,
-  "historicalDays": 365,
-  "forecastDays": 30,
-  "averageDailyDemand": 8.4,
-  "dailyDemandTrend": 0.12,
-  "forecastedDemand": 270,
-  "predictedEndingInventory": 850,
-  "dailyForecast": [
-    8.5,
-    8.8,
-    9.1
-  ]
+  "itemID":1,
+  "currentStock":120,
+  "forecastedDemand":300,
+  "safetyStock":100,
+  "recommendedPurchase":280,
+  "urgency":"HIGH"
 }
+```
+
+---
+
+# API Endpoints
+
+## Items
+
+```
+POST   /items
+GET    /items
+GET    /items/:id
+```
+
+## Transactions
+
+```
+POST   /transactions
+GET    /items/:id/transactions
+```
+
+## Stock
+```
+GET    /items/:id/stock
+```
+
+## Snapshots
+
+```
+POST   /items/:id/snapshots
+GET    /items/:id/snapshots
+```
+
+## Analytics
+
+```
+GET /items/:id/analytics
+```
+
+Parameters:
+
+```
+days
+```
+
+## Forecasting
+
+```
+GET /items/:id/forecast
+```
+
+Parameters:
+
+```
+historyDays
+forecastDays
+```
+
+## Purchasing Recommendation
+
+```
+GET /items/:id/recommendation
 ```
 
 ---
@@ -301,51 +387,46 @@ Response:
 ## Database
 
 - PostgreSQL
+- SQL migrations
 
 ## Development Tools
 
 - Git
-- Docker (planned deployment support)
-- SQL migrations
+- Docker support planned
+- Data generation tooling
 
 ---
 
 # Architecture
 
 ```
-                    +----------------+
-                    |    REST API    |
-                    |      Gin       |
-                    +-------+--------+
-                            |
-                            |
-                    +-------v--------+
-                    |    Services    |
-                    +-------+--------+
-                            |
-                            |
-                    +-------v--------+
-                    |  Repository    |
-                    +-------+--------+
-                            |
-                            |
-                    +-------v--------+
-                    |  PostgreSQL    |
-                    +----------------+
+                 REST API
+                    |
+                    |
+                Controllers
+                    |
+                    |
+                Services
+                    |
+                    |
+              Repositories
+                    |
+                    |
+               PostgreSQL
 
 
-Forecasting Pipeline:
+Forecasting System:
 
 Transactions
-     |
-     v
+      |
+      v
 Demand History
-     |
-     v
+      |
+      v
 Forecast Engine
-     |
-     v
-Inventory Recommendation
+      |
+      v
+Purchase Recommendation
 ```
 
 ---
@@ -353,8 +434,6 @@ Inventory Recommendation
 # Database Design
 
 ## Items
-
-Stores product information.
 
 ```
 items
@@ -376,8 +455,6 @@ updated_at
 
 ## Inventory Transactions
 
-Stores inventory movement.
-
 ```
 inventory_transactions
 ----------------------
@@ -393,138 +470,95 @@ created_at
 
 ---
 
-## Inventory Snapshots
-
-Stores historical inventory states.
-
-```
-inventory_snapshots
--------------------
-id
-item_id
-quantity
-created_at
-```
-
----
-
 # Future Development
 
-## Forecast Improvements
+## Dashboard Application
 
-### Exponential Smoothing
+Frontend dashboard for interacting with the inventory system.
 
-Replace simple averages with weighted forecasting where recent demand has higher influence.
+Planned features:
 
-Benefits:
-
-- Faster response to changing demand
-- Better handling of trends
-- Industry-standard forecasting method
-
----
-
-## Reorder Recommendations
-
-Convert forecasts into purchasing decisions.
-
-Planned calculation:
-
-```
-Reorder Point =
-Demand During Lead Time
-+
-Safety Stock
-```
-
-Future recommendation example:
-
-```
-Item:
-ABC-123
-
-Current Stock:
-250
-
-Expected Demand:
-300
-
-Recommendation:
-Purchase 100 units
-```
-
----
-
-## Dashboard
-
-Planned frontend to make the tool more easy to use.
-
-Planned support for:
-
-- Charts
+- Inventory overview
+- Demand charts
 - Forecast visualization
-- Inventory management UI
+- Purchasing recommendations
+- Stock alerts
+- Item management
 
----
+Technology:
 
-## Supplier Management
-
-Planned support for:
-
-- Suppliers
-- Lead times
-- Purchase history
-- Supplier pricing
-- Minimum order quantities
+- React
+- Charting library
+- REST API integration
 
 ---
 
 ## Machine Learning Forecasting
 
-Future models may include:
+Future forecasting models may include:
 
-- Regression forecasting
+- Regression models
 - ARIMA
-- Prophet-style models
+- Prophet-style forecasting
+- Gradient boosted forecasting
 - Neural forecasting models
 
-Machine learning models will only be introduced after establishing strong statistical baselines.
+The plan is to maintain statistical forecasting methods as a baseline before introducing machine learning models.
 
 ---
 
 ## Batch Forecasting
 
-Allow the user to get forecasts for a bunch of different items.
+Support forecasting across all inventory items.
 
-This could also be used to help the buyer prioritize items that are out of stock or almost out of stock.
+Example:
 
-# Project Goals
+```
+Generate recommendations for all items
 
-The long-term goal is to create an intelligent inventory assistant capable of:
+↓
+
+Rank by urgency
+
+↓
+
+Prioritize purchasing decisions
+```
+
+---
+
+## Inventory Alerts
+
+Future support:
+
+- Stockout warnings
+- Overstock detection
+- Slow-moving inventory
+- Dead inventory identification
+
+---
+
+# Data Generator
+
+The project includes tools for generating inventory histories.
+
+This allows forecasting algorithms to be tested with realistic scenarios.
+
+---
+
+# Long-Term Goals
+
+The goal is to create an intelligent inventory assistant capable of:
 
 - Tracking inventory automatically
 - Predicting future demand
-- Identifying seasonal products
+- Identifying seasonal behavior
 - Preventing stockouts
 - Reducing excess inventory
-- Helping purchasing teams make better decisions
+- Recommending purchasing decisions
 
 ---
 
 # License
 
-This project is currently for educational and portfolio development purposes.
-
-
-
-Phase 5 – Forecasting
-- Moving average
-- Exponential smoothing
-- Reorder point
-- Recommended purchase quantity
-
-Phase 6 – Dashboard
-- React frontend
-- Charts
-- Forecast visualization
-- Inventory management UI
+This project is currently developed for educational and portfolio purposes.

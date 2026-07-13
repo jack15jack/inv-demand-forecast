@@ -79,25 +79,6 @@ func calculateAverage(values []int) float64 {
 	return float64(total) / float64(len(values))
 }
 
-func calculateTrend(values []int) float64 {
-
-	if len(values) < 2 {
-		return 0
-	}
-
-	mid := len(values) / 2
-
-	first := calculateAverage(values[:mid])
-	second := calculateAverage(values[mid:])
-
-	// avoid huge spikes from zero demand
-	if first == 0 {
-		return 0
-	}
-
-	return (second - first) / first
-}
-
 func calculateWeeklySeasonality(history []int) []float64 {
 
 	dayTotals := make([]int, 7)
@@ -269,30 +250,6 @@ func calculateForecastConfidence(history []int, historyDays int, weeklySeasonali
 		Level:   level,
 		Factors: factors,
 	}
-}
-
-func exponentialSmoothing(history []int, alpha float64) float64 {
-
-	if len(history) == 0 {
-		return 0
-	}
-
-	// Default smoothing factor
-	// if invalid value supplied
-	if alpha <= 0 || alpha >= 1 {
-		alpha = 0.3
-	}
-
-	forecast := float64(history[0])
-
-	for i := 1; i < len(history); i++ {
-
-		actual := float64(history[i])
-
-		forecast = alpha*actual + (1-alpha)*forecast
-	}
-
-	return forecast
 }
 
 func holtLinearForecast(history []int, alpha float64, beta float64) HoltForecast {

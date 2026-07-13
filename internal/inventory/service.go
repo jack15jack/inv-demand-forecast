@@ -7,6 +7,7 @@ import (
 )
 
 type Service interface {
+	// Items
 	CreateItem(req CreateItemRequest) (*Item, error)
 	GetItems() ([]Item, error)
 	GetItem(id uint) (*Item, error)
@@ -26,6 +27,9 @@ type Service interface {
 	// Analytics
 	GetAnalytics(itemID uint, days int) (*AnalyticsResponse, error)
 	GetForecast(itemID uint, historyDays int, forecastDays int) (*ForecastResponse, error)
+
+	// Recommendation
+	GetPurchaseRecommendation(itemID uint, forecastDays int) (*PurchaseRecommendation, error)
 }
 
 type service struct {
@@ -407,4 +411,69 @@ func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*
 	response.PredictedEndingInventory = predictedInventory
 
 	return response, nil
+}
+
+func (s *service) GetPurchaseRecommendation(itemID uint, forecastDays int) (*PurchaseRecommendation, error) {
+
+	item, err := s.repo.GetByID(itemID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if forecastDays <= 0 {
+		forecastDays = 30
+	}
+
+	forecast, err := s.GetForecast(itemID, 365, forecastDays)
+
+	if err != nil {
+		return nil, err
+	}
+
+	currentStock, err :=
+		s.CalculateCurrentStock(itemID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	projectedInventory := currentStock - forecast.ForecastedDemand
+
+	requiredInventory := forecast.ForecastedDemand + item.SafetyStock
+
+	recommendedPurchase := requiredInventory - currentStock
+
+	if recommendedPurchase < 0 {
+		recommendedPurchase = 0
+	}
+
+	urgency := "LOW"
+
+	reason := "Inventory level sufficient"
+
+	if projectedInventory < 0 {
+
+		urgency = "HIGH"
+
+		reason = "Projected stockout during forecast period"
+
+	} else if projectedInventory < item.MinimumStock {
+
+		urgency = "MEDIUM"
+
+		reason = "Inventory below minimum threshold"
+	}
+
+	return &PurchaseRecommendation{
+		ItemID:              itemID,
+		CurrentStock:        currentStock,
+		ForecastDays:        forecastDays,
+		ForecastedDemand:    forecast.ForecastedDemand,
+		SafetyStock:         item.SafetyStock,
+		ProjectedInventory:  projectedInventory,
+		RecommendedPurchase: recommendedPurchase,
+		Urgency:             urgency,
+		Reason:              reason,
+	}, nil
 }

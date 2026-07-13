@@ -204,11 +204,7 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 
 func (h *Handler) GetForecast(c *gin.Context) {
 
-	id, err := strconv.ParseUint(
-		c.Param("id"),
-		10,
-		64,
-	)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -244,11 +240,7 @@ func (h *Handler) GetForecast(c *gin.Context) {
 		}
 	}
 
-	forecast, err := h.service.GetForecast(
-		uint(id),
-		historyDays,
-		forecastDays,
-	)
+	forecast, err := h.service.GetForecast(uint(id), historyDays, forecastDays)
 
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -258,4 +250,49 @@ func (h *Handler) GetForecast(c *gin.Context) {
 	}
 
 	c.JSON(200, forecast)
+}
+
+func (h *Handler) GetPurchaseRecommendation(c *gin.Context) {
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+
+	if err != nil {
+
+		c.JSON(400, gin.H{
+			"error": "invalid item id",
+		})
+
+		return
+	}
+
+	forecastDays := 30
+
+	if days := c.Query("days"); days != "" {
+
+		d, err := strconv.Atoi(days)
+
+		if err != nil || d <= 0 {
+
+			c.JSON(400, gin.H{
+				"error": "days must be positive",
+			})
+
+			return
+		}
+
+		forecastDays = d
+	}
+
+	result, err := h.service.GetPurchaseRecommendation(uint(id), forecastDays)
+
+	if err != nil {
+
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(200, result)
 }
