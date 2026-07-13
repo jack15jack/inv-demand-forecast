@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"errors"
+	"math"
 	"time"
 )
 
@@ -303,52 +304,77 @@ func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*
 		forecastDays = 7
 	}
 
+	// Get transactions
 	transactions, err := s.repo.GetTransactionsForItem(itemID)
-
 	if err != nil {
 		return nil, err
 	}
 
-	cutoff := time.Now().AddDate(0, 0, -historyDays)
-
-	unitsSold := 0
-
-	for _, t := range transactions {
-
-		if t.TransactionType != Sale {
-			continue
-		}
-
-		if t.Direction != Outbound {
-			continue
-		}
-
-		if t.CreatedAt.Before(cutoff) {
-			continue
-		}
-
-		unitsSold += t.Quantity
+	currentStock, err := s.CalculateCurrentStock(itemID)
+	if err != nil {
+		return nil, err
 	}
 
-	averageDailyDemand := float64(unitsSold) / float64(historyDays)
+	// Calculate Average
+	history := buildDemandHistory(transactions, historyDays)
+
+	average := calculateAverage(history)
+
+	trend := calculateTrend(history)
+
+	seasonality := calculateWeeklySeasonality(history)
 
 	response := &ForecastResponse{
 		ItemID:             itemID,
-		ForecastDays:       forecastDays,
 		HistoricalDays:     historyDays,
-		AverageDailyDemand: averageDailyDemand,
+		ForecastDays:       forecastDays,
+		CurrentStock:       currentStock,
+		AverageDailyDemand: average,
+		DailyDemandTrend:   trend,
+		WeeklySeasonality:  seasonality,
+		HistoricalDemand:   history,
 	}
+
+	predictedInventory := currentStock
+
+	forecast := average
+
+	today := time.Now()
 
 	for i := 0; i < forecastDays; i++ {
 
-		response.DailyForecast =
-			append(
-				response.DailyForecast,
-				averageDailyDemand,
-			)
+		date := today.AddDate(0, 0, i+1)
 
-		response.ForecastedDemand += int(averageDailyDemand)
+		weekday := int(date.Weekday())
+
+		seasonFactor := 1.0
+
+		if len(seasonality) == 7 {
+			seasonFactor = seasonality[weekday]
+		}
+
+		demand := forecast * seasonFactor
+
+		if demand < 0 {
+			demand = 0
+		}
+
+		response.DailyForecast = append(response.DailyForecast, demand)
+
+		rounded := int(math.Round(demand))
+
+		response.ForecastedDemand += rounded
+
+		predictedInventory -= rounded
+
+		if predictedInventory < 0 {
+			predictedInventory = 0
+		}
+
+		forecast += forecast * trend / float64(historyDays)
 	}
+
+	response.PredictedEndingInventory = predictedInventory
 
 	return response, nil
 }
