@@ -50,8 +50,9 @@ type ForecastResponse struct {
 	CurrentStock             int       `json:"currentStock"`
 	PredictedEndingInventory int       `json:"predictedEndingInventory"`
 	AverageDailyDemand       float64   `json:"averageDailyDemand"`
-	DailyDemandTrend         float64   `json:"trend"`
-	WeeklySeasonality        []float64 `json:"seasonality"`
+	DailyDemandTrend         float64   `json:"dailyDemandTrend"`
+	WeeklySeasonality        []float64 `json:"weeklySeasonality"`
+	MonthlySeasonality       []float64 `json:"monthlySeasonality"`
 	HistoricalDemand         []int     `json:"historicalDemand"`
 	DailyForecast            []float64 `json:"dailyForecast"`
 	ForecastedDemand         int       `json:"forecastedDemand"`

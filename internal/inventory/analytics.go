@@ -141,3 +141,59 @@ func calculateWeeklySeasonality(history []int) []float64 {
 
 	return seasonality
 }
+
+func calculateMonthlySeasonality(history []int) []float64 {
+
+	monthlyTotals := make([]int, 12)
+	monthCounts := make([]int, 12)
+
+	average := calculateAverage(history)
+
+	if average == 0 {
+		return make([]float64, 12)
+	}
+
+	now := time.Now()
+
+	for i, demand := range history {
+
+		date := time.Date(
+			now.Year(),
+			now.Month(),
+			now.Day(),
+			0,
+			0,
+			0,
+			0,
+			now.Location(),
+		).AddDate(
+			0,
+			0,
+			-(len(history) - 1 - i),
+		)
+
+		month := int(date.Month()) - 1
+
+		monthlyTotals[month] += demand
+		monthCounts[month]++
+	}
+
+	seasonality := make([]float64, 12)
+
+	for i := 0; i < 12; i++ {
+
+		if monthCounts[i] == 0 {
+			seasonality[i] = 1
+			continue
+		}
+
+		monthAverage :=
+			float64(monthlyTotals[i]) /
+				float64(monthCounts[i])
+
+		seasonality[i] =
+			monthAverage / average
+	}
+
+	return seasonality
+}

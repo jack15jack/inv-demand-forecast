@@ -322,7 +322,17 @@ func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*
 
 	trend := calculateTrend(history)
 
-	seasonality := calculateWeeklySeasonality(history)
+	weeklySeasonality := calculateWeeklySeasonality(history)
+
+	monthlySeasonality := calculateMonthlySeasonality(history)
+
+	if historyDays < 365 {
+		monthlySeasonality = make([]float64, 12)
+
+		for i := range monthlySeasonality {
+			monthlySeasonality[i] = 1
+		}
+	}
 
 	response := &ForecastResponse{
 		ItemID:             itemID,
@@ -331,7 +341,8 @@ func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*
 		CurrentStock:       currentStock,
 		AverageDailyDemand: average,
 		DailyDemandTrend:   trend,
-		WeeklySeasonality:  seasonality,
+		WeeklySeasonality:  weeklySeasonality,
+		MonthlySeasonality: monthlySeasonality,
 		HistoricalDemand:   history,
 	}
 
@@ -345,15 +356,21 @@ func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*
 
 		date := today.AddDate(0, 0, i+1)
 
-		weekday := int(date.Weekday())
+		weekdayFactor := 1.0
+		monthFactor := 1.0
 
-		seasonFactor := 1.0
-
-		if len(seasonality) == 7 {
-			seasonFactor = seasonality[weekday]
+		if len(weeklySeasonality) == 7 {
+			weekdayFactor =
+				weeklySeasonality[int(date.Weekday())]
 		}
 
-		demand := forecast * seasonFactor
+		if len(monthlySeasonality) == 12 {
+
+			monthFactor =
+				monthlySeasonality[int(date.Month())-1]
+		}
+
+		demand := forecast * weekdayFactor * monthFactor
 
 		if demand < 0 {
 			demand = 0
