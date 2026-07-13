@@ -1,6 +1,9 @@
 package inventory
 
-import "time"
+import (
+	"math"
+	"time"
+)
 
 func buildDemandHistory(transactions []InventoryTransaction, historyDays int) []int {
 
@@ -131,12 +134,9 @@ func calculateWeeklySeasonality(history []int) []float64 {
 			continue
 		}
 
-		dayAverage :=
-			float64(dayTotals[i]) /
-				float64(dayCounts[i])
+		dayAverage := float64(dayTotals[i]) / float64(dayCounts[i])
 
-		seasonality[i] =
-			dayAverage / average
+		seasonality[i] = dayAverage / average
 	}
 
 	return seasonality
@@ -187,13 +187,138 @@ func calculateMonthlySeasonality(history []int) []float64 {
 			continue
 		}
 
-		monthAverage :=
-			float64(monthlyTotals[i]) /
-				float64(monthCounts[i])
+		monthAverage := float64(monthlyTotals[i]) / float64(monthCounts[i])
 
-		seasonality[i] =
-			monthAverage / average
+		seasonality[i] = monthAverage / average
 	}
 
 	return seasonality
+}
+
+func calculateDemandVariance(history []int) float64 {
+
+	if len(history) == 0 {
+		return 1
+	}
+
+	mean := calculateAverage(history)
+
+	total := 0.0
+
+	for _, value := range history {
+
+		diff :=
+			float64(value) - mean
+
+		total += diff * diff
+	}
+
+	variance := total / float64(len(history))
+
+	return math.Sqrt(variance)
+}
+
+func calculateForecastConfidence(history []int, historyDays int, weeklySeasonality []float64, monthlySeasonality []float64) ForecastConfidence {
+
+	score := 0.0
+
+	factors := map[string]float64{}
+
+	// History score
+	historyScore := math.Min(float64(historyDays)/365.0*100, 100)
+
+	factors["history"] = historyScore
+
+	score += historyScore * 0.4
+
+	// Consistency score
+	variance := calculateDemandVariance(history)
+
+	consistency := 100 - math.Min(variance*5, 100)
+
+	factors["consistency"] = consistency
+
+	score += consistency * 0.4
+
+	// Seasonality score
+	seasonalityScore := 0.0
+
+	if historyDays >= 60 && len(weeklySeasonality) == 7 {
+		seasonalityScore += 50
+	}
+
+	if historyDays >= 365 && len(monthlySeasonality) == 12 {
+		seasonalityScore += 50
+	}
+
+	factors["seasonality"] =
+		seasonalityScore
+
+	score += seasonalityScore * 0.2
+
+	level := "LOW"
+
+	if score >= 75 {
+		level = "HIGH"
+	} else if score >= 50 {
+		level = "MEDIUM"
+	}
+
+	return ForecastConfidence{
+		Score:   math.Round(score),
+		Level:   level,
+		Factors: factors,
+	}
+}
+
+func exponentialSmoothing(history []int, alpha float64) float64 {
+
+	if len(history) == 0 {
+		return 0
+	}
+
+	// Default smoothing factor
+	// if invalid value supplied
+	if alpha <= 0 || alpha >= 1 {
+		alpha = 0.3
+	}
+
+	forecast := float64(history[0])
+
+	for i := 1; i < len(history); i++ {
+
+		actual := float64(history[i])
+
+		forecast = alpha*actual + (1-alpha)*forecast
+	}
+
+	return forecast
+}
+
+func holtLinearForecast(history []int, alpha float64, beta float64) HoltForecast {
+
+	if len(history) < 2 {
+		return HoltForecast{}
+	}
+
+	level := float64(history[0])
+
+	trend := float64(history[1]) - float64(history[0])
+
+	for i := 1; i < len(history); i++ {
+
+		value := float64(history[i])
+
+		previousLevel := level
+
+		level = alpha*value + (1-alpha)*(level+trend)
+
+		trend = beta*(level-previousLevel) + (1-beta)*trend
+
+	}
+
+	return HoltForecast{
+		Level: level,
+		Trend: trend,
+	}
 }

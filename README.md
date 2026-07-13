@@ -424,42 +424,6 @@ Benefits:
 
 ---
 
-## Forecast Accuracy Metrics
-
-Add model evaluation:
-
-- Mean Absolute Error (MAE)
-- Mean Absolute Percentage Error (MAPE)
-- Forecast bias
-- Prediction confidence intervals
-
-Example:
-
-```
-Forecast:
-100 units
-
-Expected Range:
-85-120 units
-
-Confidence:
-82%
-```
-
----
-
-## Advanced Seasonality
-
-Expand seasonal modeling:
-
-- Weekly seasonality
-- Monthly seasonality
-- Holiday effects
-- Promotions
-- Product lifecycle trends
-
----
-
 ## Reorder Recommendations
 
 Convert forecasts into purchasing decisions.
@@ -500,6 +464,8 @@ Planned support for:
 - Charts
 - Forecast visualization
 - Inventory management UI
+
+---
 
 ## Supplier Management
 
@@ -554,7 +520,6 @@ This project is currently for educational and portfolio development purposes.
 Phase 5 – Forecasting
 - Moving average
 - Exponential smoothing
-- Seasonality detection
 - Reorder point
 - Recommended purchase quantity
 

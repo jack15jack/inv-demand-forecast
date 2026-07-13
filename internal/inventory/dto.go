@@ -44,16 +44,28 @@ type AnalyticsResponse struct {
 }
 
 type ForecastResponse struct {
-	ItemID                   uint      `json:"itemId"`
-	HistoricalDays           int       `json:"historicalDays"`
-	ForecastDays             int       `json:"forecastDays"`
-	CurrentStock             int       `json:"currentStock"`
-	PredictedEndingInventory int       `json:"predictedEndingInventory"`
-	AverageDailyDemand       float64   `json:"averageDailyDemand"`
-	DailyDemandTrend         float64   `json:"dailyDemandTrend"`
-	WeeklySeasonality        []float64 `json:"weeklySeasonality"`
-	MonthlySeasonality       []float64 `json:"monthlySeasonality"`
-	HistoricalDemand         []int     `json:"historicalDemand"`
-	DailyForecast            []float64 `json:"dailyForecast"`
-	ForecastedDemand         int       `json:"forecastedDemand"`
+	ItemID                   uint               `json:"itemId"`
+	HistoricalDays           int                `json:"historicalDays"`
+	ForecastDays             int                `json:"forecastDays"`
+	CurrentStock             int                `json:"currentStock"`
+	PredictedEndingInventory int                `json:"predictedEndingInventory"`
+	DailyDemand              float64            `json:"dailyDemand"`
+	DailyDemandTrend         float64            `json:"dailyDemandTrend"`
+	WeeklySeasonality        []float64          `json:"weeklySeasonality"`
+	MonthlySeasonality       []float64          `json:"monthlySeasonality"`
+	HistoricalDemand         []int              `json:"historicalDemand"`
+	DailyForecast            []float64          `json:"dailyForecast"`
+	ForecastedDemand         int                `json:"forecastedDemand"`
+	Confidence               ForecastConfidence `json:"confidence"`
+}
+
+type ForecastConfidence struct {
+	Score   float64            `json:"score"`
+	Level   string             `json:"level"`
+	Factors map[string]float64 `json:"factors"`
+}
+
+type HoltForecast struct {
+	Level float64
+	Trend float64
 }

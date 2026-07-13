@@ -315,40 +315,53 @@ func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*
 		return nil, err
 	}
 
-	// Calculate Average
+	// Calculate Analytics
 	history := buildDemandHistory(transactions, historyDays)
 
-	average := calculateAverage(history)
+	holt := holtLinearForecast(history, 0.3, 0.1)
 
-	trend := calculateTrend(history)
+	dailyDemand := holt.Level
 
-	weeklySeasonality := calculateWeeklySeasonality(history)
+	trend := holt.Trend
 
-	monthlySeasonality := calculateMonthlySeasonality(history)
+	weeklySeasonality := make([]float64, 7)
 
-	if historyDays < 365 {
-		monthlySeasonality = make([]float64, 12)
-
-		for i := range monthlySeasonality {
-			monthlySeasonality[i] = 1
-		}
+	for i := range weeklySeasonality {
+		weeklySeasonality[i] = 1
 	}
+
+	if historyDays >= 60 {
+		weeklySeasonality = calculateWeeklySeasonality(history)
+	}
+
+	monthlySeasonality := make([]float64, 12)
+
+	for i := range monthlySeasonality {
+		monthlySeasonality[i] = 1
+	}
+
+	if historyDays >= 365 {
+		monthlySeasonality = calculateMonthlySeasonality(history)
+	}
+
+	confidence := calculateForecastConfidence(history, historyDays, weeklySeasonality, monthlySeasonality)
 
 	response := &ForecastResponse{
 		ItemID:             itemID,
 		HistoricalDays:     historyDays,
 		ForecastDays:       forecastDays,
 		CurrentStock:       currentStock,
-		AverageDailyDemand: average,
+		DailyDemand:        dailyDemand,
 		DailyDemandTrend:   trend,
 		WeeklySeasonality:  weeklySeasonality,
 		MonthlySeasonality: monthlySeasonality,
 		HistoricalDemand:   history,
+		Confidence:         confidence,
 	}
 
 	predictedInventory := currentStock
 
-	forecast := average
+	forecast := dailyDemand
 
 	today := time.Now()
 
