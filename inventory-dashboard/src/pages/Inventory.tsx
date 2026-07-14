@@ -20,7 +20,6 @@ import {
 } from "../services/inventoryService"
 
 
-
 function Inventory(){
     const [items,setItems] = useState<Item[]>([])
 
