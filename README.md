@@ -394,7 +394,9 @@ GET /items/:id/recommendation
 
 - Go
 - Gin Web Framework
+- Gin CORS
 - GORM ORM
+
 
 ## Database
 
