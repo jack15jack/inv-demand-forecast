@@ -23,6 +23,11 @@ const menuItems = [
         name: "Inventory",
         path: "/inventory"
     },
+
+    {
+        name: "Analytics",
+        path: "/analytics"
+    },
     
     {
         name: "Forecasts",
@@ -31,11 +36,7 @@ const menuItems = [
     {
         name: "Recommendations",
         path: "/recommendations"
-    },
-    {
-        name: "Analytics",
-        path: "/analytics"
-    }
+    }    
 ]
 
 
