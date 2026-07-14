@@ -382,7 +382,13 @@ GET /items/:id/recommendation
 
 - React
 - Vite
-
+- Material UI
+- React Router
+- TanStack Query
+- Axios
+- Recharts
+- ESLint
+- Prettier
 
 ## Backend
 
