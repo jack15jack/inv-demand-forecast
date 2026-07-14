@@ -1,89 +1,95 @@
 import {
-    Grid,
+    Typography,
     Card,
     CardContent,
-    Typography
+    Grid
 } from "@mui/material"
 
 
-function Dashboard(){
-
-    const cards = [
-
-        {
-            title:"Active Items",
-            value:"0"
-        },
-
-        {
-            title:"Current Inventory",
-            value:"0"
-        },
-
-        {
-            title:"Low Stock Alerts",
-            value:"0"
-        },
-
-        {
-            title:"Purchase Recommendations",
-            value:"0"
-        }
-
-    ]
+function Home(){
 
     return (
+
         <>
+
             <Typography
                 variant="h4"
                 gutterBottom
             >
-
-                Dashboard
-
+                Inventory Forecasting System
             </Typography>
+
+
+            <Typography
+                variant="body1"
+                sx={{mb:4}}
+            >
+                Monitor inventory levels, analyze demand,
+                and make data-driven purchasing decisions.
+            </Typography>
+
+
 
             <Grid
                 container
-                spacing={3}
+                spacing={2}
             >
 
-                {
-                    cards.map((card)=>(
+                <Grid size={{xs:12, md:4}}>
 
-                        <Grid
-                            size={{
-                                xs: 12,
-                                sm: 6,
-                                md: 3
-                            }}
-                            key={card.title}
-                        >
-                            <Card>
-                                <CardContent>
-                                    <Typography
-                                        color="text.secondary"
-                                    >
+                    <Card>
 
-                                        {card.title}
+                        <CardContent>
 
-                                    </Typography>
+                            <Typography>
+                                Forecasting Engine
+                            </Typography>
 
-                                    <Typography
-                                        variant="h4"
-                                    >
+                            <Typography variant="h6">
+                                Holt Linear Smoothing
+                            </Typography>
 
-                                        {card.value}
+                        </CardContent>
 
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))
-                }
+                    </Card>
+
+                </Grid>
+
+
+                <Grid size={{xs:12, md:4}}>
+
+                    <Card>
+
+                        <CardContent>
+
+                            <Typography>
+                                Database
+                            </Typography>
+
+                            <Typography variant="h6">
+                                PostgreSQL
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid size={{xs:12, md:4}}>
+                    <Card>
+                        <CardContent>
+                            <Typography>
+                                System Status
+                            </Typography>
+
+                            <Typography variant="h6">
+                                Online
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
             </Grid>
         </>
     )
 }
 
-export default Dashboard
+
+export default Home

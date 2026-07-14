@@ -5,12 +5,70 @@ import {
     MenuItem,
     Card,
     CardContent,
-    Stack
+    Stack,
+    Grid
 } from "@mui/material"
+
 import { useState } from "react"
+
 import { createTransaction } from "../services/transactionService"
+import { createItem } from "../services/itemService"
+
 
 function Transactions(){
+    const [itemForm,setItemForm] = useState({
+        itemNumber:"",
+        description:"",
+        category:"",
+        unitCost:0,
+        unitPrice:0,
+        minimumStock:0,
+        safetyStock:0,
+        isActive:true
+    })
+
+    const handleItemChange = (field:string, value:any)=>{
+
+        setItemForm({
+
+            ...itemForm,
+
+            [field]:value
+
+        })
+    }
+
+    const handleCreateItem = async()=>{
+
+        try{
+
+            const item = await createItem(itemForm)
+
+            alert(
+                `Item created: ${item.itemNumber}`
+            )
+
+            setItemForm({
+
+                itemNumber:"",
+                description:"",
+                category:"",
+                unitCost:0,
+                unitPrice:0,
+                minimumStock:0,
+                safetyStock:0,
+                isActive:true
+
+            })
+        }
+        catch(error){
+            console.error(error)
+
+            alert(
+                "Failed to create item"
+            )
+        }
+    }
 
     const [form,setForm] = useState({
         ItemID:0,
@@ -21,7 +79,9 @@ function Transactions(){
         Notes:""
     })
 
+
     const handleChange = (field:string, value:any)=>{
+
         setForm({
 
             ...form,
@@ -31,8 +91,11 @@ function Transactions(){
         })
     }
 
-    const handleSubmit = async ()=>{
+
+    const handleSubmit = async()=>{
+
         try{
+
             await createTransaction(form)
 
             alert(
@@ -48,8 +111,8 @@ function Transactions(){
                 Notes:""
             })
         }
-
         catch(error){
+
             console.error(error)
 
             alert(
@@ -66,6 +129,136 @@ function Transactions(){
             >
                 Transactions
             </Typography>
+
+            <Card
+                sx={{
+                    mb:3
+                }}
+            >
+                <CardContent>
+                    <Typography
+                        variant="h6"
+                        gutterBottom
+                    >
+                        Create Item
+                    </Typography>
+
+                    <Grid
+                        container
+                        spacing={2}
+                    >
+                        <Grid size={{xs:12, md:6}}>
+                            <TextField
+                                fullWidth
+                                label="Item Number"
+                                value={itemForm.itemNumber}
+                                onChange={(e)=>
+                                    handleItemChange(
+                                        "itemNumber",
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </Grid>
+
+                        <Grid size={{xs:12, md:6}}>
+                            <TextField
+                                fullWidth
+                                label="Description"
+                                value={itemForm.description}
+                                onChange={(e)=>
+                                    handleItemChange(
+                                        "description",
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </Grid>
+
+                        <Grid size={{xs:12, md:6}}>
+                            <TextField
+                                fullWidth
+                                label="Category"
+                                value={itemForm.category}
+                                onChange={(e)=>
+                                    handleItemChange(
+                                        "category",
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </Grid>
+
+                        <Grid size={{xs:12, md:3}}>
+                            <TextField
+                                fullWidth
+                                label="Unit Cost"
+                                type="number"
+                                value={itemForm.unitCost}
+                                onChange={(e)=>
+                                    handleItemChange(
+                                        "unitCost",
+                                        Number(e.target.value)
+                                    )
+                                }
+                            />
+                        </Grid>
+
+                        <Grid size={{xs:12, md:3}}>
+                            <TextField
+                                fullWidth
+                                label="Unit Price"
+                                type="number"
+                                value={itemForm.unitPrice}
+                                onChange={(e)=>
+                                    handleItemChange(
+                                        "unitPrice",
+                                        Number(e.target.value)
+                                    )
+                                }
+                            />
+                        </Grid>
+
+                        <Grid size={{xs:12, md:3}}>
+                            <TextField
+                                fullWidth
+                                label="Minimum Stock"
+                                type="number"
+                                value={itemForm.minimumStock}
+                                onChange={(e)=>
+                                    handleItemChange(
+                                        "minimumStock",
+                                        Number(e.target.value)
+                                    )
+                                }
+                            />
+                        </Grid>
+
+                        <Grid size={{xs:12, md:3}}>
+                            <TextField
+                                fullWidth
+                                label="Safety Stock"
+                                type="number"
+                                value={itemForm.safetyStock}
+                                onChange={(e)=>
+                                    handleItemChange(
+                                        "safetyStock",
+                                        Number(e.target.value)
+                                    )
+                                }
+                            />
+                        </Grid>
+                    </Grid>
+
+                    <Button
+                        sx={{mt:3}}
+                        variant="contained"
+                        onClick={handleCreateItem}
+                    >
+                        Create Item
+                    </Button>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardContent>
@@ -105,15 +298,19 @@ function Transactions(){
                             <MenuItem value="SALE">
                                 Sale
                             </MenuItem>
+
                             <MenuItem value="PURCHASE">
                                 Purchase
                             </MenuItem>
+
                             <MenuItem value="RETURN">
                                 Return
                             </MenuItem>
+
                             <MenuItem value="ADJUSTMENT">
                                 Adjustment
                             </MenuItem>
+
                             <MenuItem value="TRANSFER">
                                 Transfer
                             </MenuItem>
@@ -123,18 +320,17 @@ function Transactions(){
                             select
                             label="Direction"
                             value={form.Direction}
-
                             onChange={(e)=>
                                 handleChange(
                                     "Direction",
                                     e.target.value
                                 )
                             }
-
                         >
                             <MenuItem value="IN">
                                 Inbound
                             </MenuItem>
+
                             <MenuItem value="OUT">
                                 Outbound
                             </MenuItem>
@@ -188,5 +384,6 @@ function Transactions(){
         </>
     )
 }
+
 
 export default Transactions
