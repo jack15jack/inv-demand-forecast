@@ -378,6 +378,12 @@ GET /items/:id/recommendation
 
 # Technology Stack
 
+## Frontend
+
+- React
+- Vite
+
+
 ## Backend
 
 - Go

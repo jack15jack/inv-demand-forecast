@@ -36,11 +36,8 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 		items.GET("/:id/recommendation", handler.GetPurchaseRecommendation)
 	}
-
-	transactions := r.Group("/transactions")
-	{
-		transactions.POST("", handler.CreateTransaction)
-	}
+	r.POST("/transactions", handler.CreateTransaction)
+	r.GET("/recommendations", handler.GetBatchPurchaseRecommendations)
 
 	return r
 }

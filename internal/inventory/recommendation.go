@@ -2,6 +2,8 @@ package inventory
 
 type PurchaseRecommendation struct {
 	ItemID              uint   `json:"itemId"`
+	ItemNumber          string `json:"itemNumber"`
+	Description         string `json:"description"`
 	CurrentStock        int    `json:"currentStock"`
 	ForecastDays        int    `json:"forecastDays"`
 	ForecastedDemand    int    `json:"forecastedDemand"`

@@ -3,6 +3,7 @@ package inventory
 import (
 	"errors"
 	"math"
+	"sort"
 	"time"
 )
 
@@ -30,6 +31,7 @@ type Service interface {
 
 	// Recommendation
 	GetPurchaseRecommendation(itemID uint, forecastDays int) (*PurchaseRecommendation, error)
+	GetBatchPurchaseRecommendations(forecastDays int) ([]PurchaseRecommendation, error)
 }
 
 type service struct {
@@ -421,18 +423,48 @@ func (s *service) GetPurchaseRecommendation(itemID uint, forecastDays int) (*Pur
 		return nil, err
 	}
 
-	if forecastDays <= 0 {
-		forecastDays = 30
-	}
+	return s.generatePurchaseRecommendation(*item, forecastDays)
+}
 
-	forecast, err := s.GetForecast(itemID, 365, forecastDays)
+func (s *service) GetBatchPurchaseRecommendations(forecastDays int) ([]PurchaseRecommendation, error) {
+
+	items, err := s.repo.GetActiveItems()
 
 	if err != nil {
 		return nil, err
 	}
 
-	currentStock, err :=
-		s.CalculateCurrentStock(itemID)
+	var recommendations []PurchaseRecommendation
+
+	for _, item := range items {
+
+		recommendation, err := s.generatePurchaseRecommendation(item, forecastDays)
+
+		if err != nil {
+			return nil, err
+		}
+
+		recommendations = append(recommendations, *recommendation)
+	}
+
+	sort.Slice(recommendations,
+		func(i, j int) bool {
+			return urgencyRank(recommendations[i].Urgency) > urgencyRank(recommendations[j].Urgency)
+		},
+	)
+
+	return recommendations, nil
+}
+
+func (s *service) generatePurchaseRecommendation(item Item, forecastDays int) (*PurchaseRecommendation, error) {
+
+	forecast, err := s.GetForecast(item.ID, 365, forecastDays)
+
+	if err != nil {
+		return nil, err
+	}
+
+	currentStock, err := s.CalculateCurrentStock(item.ID)
 
 	if err != nil {
 		return nil, err
@@ -442,10 +474,10 @@ func (s *service) GetPurchaseRecommendation(itemID uint, forecastDays int) (*Pur
 
 	requiredInventory := forecast.ForecastedDemand + item.SafetyStock
 
-	recommendedPurchase := requiredInventory - currentStock
+	purchase := requiredInventory - currentStock
 
-	if recommendedPurchase < 0 {
-		recommendedPurchase = 0
+	if purchase < 0 {
+		purchase = 0
 	}
 
 	urgency := "LOW"
@@ -466,14 +498,31 @@ func (s *service) GetPurchaseRecommendation(itemID uint, forecastDays int) (*Pur
 	}
 
 	return &PurchaseRecommendation{
-		ItemID:              itemID,
+		ItemID:              item.ID,
+		ItemNumber:          item.ItemNumber,
+		Description:         item.Description,
 		CurrentStock:        currentStock,
 		ForecastDays:        forecastDays,
 		ForecastedDemand:    forecast.ForecastedDemand,
 		SafetyStock:         item.SafetyStock,
 		ProjectedInventory:  projectedInventory,
-		RecommendedPurchase: recommendedPurchase,
+		RecommendedPurchase: purchase,
 		Urgency:             urgency,
 		Reason:              reason,
 	}, nil
+}
+
+func urgencyRank(level string) int {
+
+	switch level {
+
+	case "HIGH":
+		return 3
+
+	case "MEDIUM":
+		return 2
+
+	default:
+		return 1
+	}
 }

@@ -296,3 +296,37 @@ func (h *Handler) GetPurchaseRecommendation(c *gin.Context) {
 
 	c.JSON(200, result)
 }
+
+func (h *Handler) GetBatchPurchaseRecommendations(c *gin.Context) {
+
+	days := 30
+
+	if value := c.Query("days"); value != "" {
+
+		d, err := strconv.Atoi(value)
+
+		if err != nil || d <= 0 {
+
+			c.JSON(400, gin.H{
+				"error": "days must be positive",
+			})
+
+			return
+		}
+
+		days = d
+	}
+
+	result, err := h.service.GetBatchPurchaseRecommendations(days)
+
+	if err != nil {
+
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(200, result)
+}

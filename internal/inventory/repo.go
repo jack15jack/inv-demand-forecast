@@ -6,6 +6,7 @@ type Repository interface {
 	Create(item *Item) error
 	GetAll() ([]Item, error)
 	GetByID(id uint) (*Item, error)
+	GetActiveItems() ([]Item, error)
 
 	// Inventory Transactions
 	CreateTransaction(transaction *InventoryTransaction) error
@@ -47,6 +48,15 @@ func (r *repository) GetByID(id uint) (*Item, error) {
 	}
 
 	return &item, nil
+}
+
+func (r *repository) GetActiveItems() ([]Item, error) {
+
+	var items []Item
+
+	err := r.db.Where("is_active = ?", true).Find(&items).Error
+
+	return items, err
 }
 
 func (r *repository) CreateTransaction(transaction *InventoryTransaction) error {
