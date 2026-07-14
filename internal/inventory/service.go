@@ -379,17 +379,19 @@ func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*
 		monthFactor := 1.0
 
 		if len(weeklySeasonality) == 7 {
-			weekdayFactor =
-				weeklySeasonality[int(date.Weekday())]
+			weekdayFactor = weeklySeasonality[int(date.Weekday())]
 		}
 
 		if len(monthlySeasonality) == 12 {
 
-			monthFactor =
-				monthlySeasonality[int(date.Month())-1]
+			monthFactor = monthlySeasonality[int(date.Month())-1]
 		}
 
-		demand := forecast * weekdayFactor * monthFactor
+		monthFactor = 1 + (monthFactor-1)*0.5
+
+		seasonalFactor := (weekdayFactor * 0.3) + (monthFactor * 0.3) + 0.4
+
+		demand := forecast * seasonalFactor
 
 		if demand < 0 {
 			demand = 0
@@ -407,7 +409,7 @@ func (s *service) GetForecast(itemID uint, historyDays int, forecastDays int) (*
 			predictedInventory = 0
 		}
 
-		forecast += forecast * trend / float64(historyDays)
+		forecast = dailyDemand + trend*float64(i+1)
 	}
 
 	response.PredictedEndingInventory = predictedInventory
